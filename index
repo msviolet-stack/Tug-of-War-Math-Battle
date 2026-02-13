@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tug of War: Math Duel</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --line:#243055;
+      --text:#eef2ff;
+      --muted:#a7b0d6;
+      --red:#ff4d4d;
+      --blue:#4da3ff;
+      --rope:#caa86a;
+      --rope2:#b68f55;
+      --win:#33d17a;
+      --warn:#ffcc66;
+      --radius:18px;
+      --shadow: 0 8px 30px rgba(0,0,0,.35);
+      font-synthesis-weight: none;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 50% 0%, #1b2a5a 0%, var(--bg) 60%);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .app{
+      width:min(1100px, 100%);
+      display:grid;
+      gap:14px;
+      grid-template-columns: 1fr;
+    }
+    .topbar{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .title h1{
+      font-size:22px;
+      margin:0;
+      letter-spacing:.2px;
+    }
+    .title p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    button{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    button:hover{ background: rgba(255,255,255,.10); }
+    button:active{ transform: translateY(1px); }
+    .btn-red{ border-color: rgba(255,77,77,.35); }
+    .btn-blue{ border-color: rgba(77,163,255,.35); }
+    .btn-green{ border-color: rgba(51,209,122,.35); }
+    .btn-ghost{ background: transparent; }
+
+    .grid{
+      display:grid;
+      gap:14px;
+      grid-template-columns: 1fr 1.35fr 1fr;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .team{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height: 260px;
+    }
+    .teamHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+      letter-spacing:.3px;
+    }
+    .dot{
+      width:12px;height:12px;border-radius:99px;
+      box-shadow: 0 0 0 4px rgba(255,255,255,.06);
+    }
+    .dot.red{ background: var(--red); }
+    .dot.blue{ background: var(--blue); }
+
+    .scoreBox{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.18);
+    }
+    .scoreBox .label{ color:var(--muted); font-size:12px; }
+    .scoreBox .val{ font-size:18px; font-weight:900; }
+
+    .question{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding:12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+    }
+    .question .q{
+      font-size:22px;
+      font-weight:900;
+      letter-spacing:.3px;
+      line-height:1.15;
+    }
+    .question .hint{
+      color:var(--muted);
+      font-size:12px;
+    }
+    .answerRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    input[type="number"]{
+      width: 160px;
+      padding:10px 12px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.25);
+      color:var(--text);
+      font-size:16px;
+      outline:none;
+    }
+    input[type="number"]:focus{
+      border-color: rgba(255,255,255,.35);
+      box-shadow: 0 0 0 4px rgba(77,163,255,.12);
+    }
+
+    .center{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:stretch;
+      justify-content:space-between;
+      min-height: 260px;
+    }
+    .arena{
+      padding:14px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(255,255,255,.02));
+    }
+    .arenaTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+    .turnPill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      font-weight:800;
+      font-size:13px;
+    }
+    .turnPill.red{ border-color: rgba(255,77,77,.35); }
+    .turnPill.blue{ border-color: rgba(77,163,255,.35); }
+    .turnPill .miniDot{
+      width:10px;height:10px;border-radius:99px;
+    }
+    .miniDot.red{ background: var(--red); }
+    .miniDot.blue{ background: var(--blue); }
+
+    .stepsRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .stepsRow strong{ color:var(--text); }
+
+    /* Tug-of-war visual */
+    .tug{
+      position:relative;
+      height: 120px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(500px 120px at 50% 0%, rgba(255,255,255,.08), rgba(0,0,0,0) 60%),
+        linear-gradient(90deg, rgba(255,77,77,.08), rgba(255,255,255,.02), rgba(77,163,255,.08));
+      overflow:hidden;
+    }
+    .midline{
+      position:absolute;
+      top:0; bottom:0;
+      left:50%;
+      width:2px;
+      background: rgba(255,255,255,.18);
+    }
+    .rope{
+      position:absolute;
+      left:10%;
+      right:10%;
+      top:50%;
+      height:14px;
+      transform: translateY(-50%);
+      border-radius: 999px;
+      background: repeating-linear-gradient(
+        45deg,
+        var(--rope),
+        var(--rope) 10px,
+        var(--rope2) 10px,
+        var(--rope2) 20px
+      );
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.15), 0 8px 18px rgba(0,0,0,.35);
+    }
+    .marker{
+      position:absolute;
+      top:50%;
+      width:18px;height:18px;
+      border-radius: 6px;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,.95);
+      box-shadow: 0 10px 25px rgba(0,0,0,.35);
+      border: 2px solid rgba(0,0,0,.25);
+    }
+    .flag{
+      position:absolute;
+      top:14px;
+      width:110px;
+      padding:8px 10px;
+      border-radius: 14px;
+      font-weight:900;
+      font-size:12px;
+      text-align:center;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: blur(8px);
+    }
+    .flag.red{ left:12px; }
+    .flag.blue{ right:12px; }
+    .flag span{
+      display:inline-block;
+      padding:3px 8px;
+      border-radius: 999px;
+      color: #0b1020;
+      font-weight:1000;
+    }
+    .flag.red span{ background: var(--red); }
+    .flag.blue span{ background: var(--blue); }
+
+    .ticks{
+      position:absolute;
+      left:10%;
+      right:10%;
+      top: calc(50% + 26px);
+      display:flex;
+      justify-content:space-between;
+      gap:0;
+      pointer-events:none;
+      opacity:.45;
+    }
+    .tick{
+      width:2px;
+      height:10px;
+      background: rgba(255,255,255,.25);
+    }
+    .legend{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .legend b{ color:var(--text); }
+
+    .status{
+      padding:12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      min-height: 64px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .msg{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .msg .main{
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .msg .sub{
+      color:var(--muted);
+      font-size:12px;
+    }
+    .winner{
+      color: var(--win);
+    }
+    .warn{
+      color: var(--warn);
+    }
+    .footerNote{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+    }
+
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      padding:2px 6px;
+      border-radius: 8px;
+      color: var(--text);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title">
+        <h1>🏁 Tug of War: Math Duel</h1>
+        <p>2 players • addition & subtraction • first to pull <b>5 steps</b> wins</p>
+      </div>
+      <div class="controls">
+        <button class="btn-green" id="btnNew">New Game</button>
+        <button class="btn-ghost" id="btnHelp">How to Play</button>
+      </div>
+    </div>
+
+    <div class="panel grid">
+      <!-- RED -->
+      <div class="team">
+        <div class="teamHeader">
+          <div class="badge"><span class="dot red"></span> RED</div>
+          <div class="scoreBox" style="border-color: rgba(255,77,77,.25);">
+            <div class="label">Steps pulled</div>
+            <div class="val" id="redSteps">0</div>
+          </div>
+        </div>
+
+        <div class="question" id="redBox">
+          <div class="q" id="redQ">—</div>
+          <div class="hint">Answer only when it’s <b>RED</b>’s turn.</div>
+          <div class="answerRow">
+            <input id="redAns" type="number" inputmode="numeric" placeholder="Answer" />
+            <button class="btn-red" id="redSubmit">Submit</button>
+          </div>
+        </div>
+
+        <div class="footerNote">
+          Tip: press <span class="kbd">Enter</span> to submit during your turn.
+        </div>
+      </div>
+
+      <!-- CENTER -->
+      <div class="center">
+        <div class="arena">
+          <div class="arenaTop">
+            <div class="turnPill" id="turnPill">
+              <span class="miniDot red" id="turnDot"></span>
+              <span id="turnText">RED's turn</span>
+            </div>
+            <div class="stepsRow">
+              Target: <strong>5 steps</strong> • Rope position: <strong id="posText">0</strong>
+            </div>
+          </div>
+
+          <div class="tug" aria-label="Tug of war arena">
+            <div class="flag red"><span>RED</span></div>
+            <div class="flag blue"><span>BLUE</span></div>
+
+            <div class="midline"></div>
+
+            <div class="rope"></div>
+
+            <!-- marker: moves left/right -->
+            <div class="marker" id="marker" title="Rope marker"></div>
+
+            <!-- 11 ticks (from -5 to +5) -->
+            <div class="ticks" id="ticks"></div>
+            <div class="legend">
+              <span><b>RED</b> pulls ←</span>
+              <span>Center line</span>
+              <span>→ pulls <b>BLUE</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="status" id="status">
+          <div class="msg">
+            <div class="main" id="mainMsg">Solve your question to pull the rope!</div>
+            <div class="sub" id="subMsg">Correct = pull 1 step • Wrong = no pull</div>
+          </div>
+          <button id="btnNext" class="btn-green">Next Question</button>
+        </div>
+      </div>
+
+      <!-- BLUE -->
+      <div class="team">
+        <div class="teamHeader">
+          <div class="badge"><span class="dot blue"></span> BLUE</div>
+          <div class="scoreBox" style="border-color: rgba(77,163,255,.25);">
+            <div class="label">Steps pulled</div>
+            <div class="val" id="blueSteps">0</div>
+          </div>
+        </div>
+
+        <div class="question" id="blueBox">
+          <div class="q" id="blueQ">—</div>
+          <div class="hint">Answer only when it’s <b>BLUE</b>’s turn.</div>
+          <div class="answerRow">
+            <input id="blueAns" type="number" inputmode="numeric" placeholder="Answer" />
+            <button class="btn-blue" id="blueSubmit">Submit</button>
+          </div>
+        </div>
+
+        <div class="footerNote">
+          Try to be fast but accurate. Keep it fair: no shouting answers 😉
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="helpPanel" style="display:none;">
+      <div style="display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:900; font-size:16px; margin-bottom:6px;">How to Play</div>
+          <div class="footerNote">
+            <ul style="margin:0; padding-left:18px;">
+              <li>RED goes first.</li>
+              <li>Each turn, a player answers 1 addition/subtraction question.</li>
+              <li>If correct, the rope moves 1 step toward that player.</li>
+              <li>First to pull <b>5 steps</b> wins.</li>
+              <li>Click <b>Next Question</b> if you want to skip after someone submits.</li>
+            </ul>
+          </div>
+        </div>
+        <button class="btn-ghost" id="btnCloseHelp">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Game Settings =====
+    const STEPS_TO_WIN = 5;              // 5 steps to win
+    const MAX_ABS_POS = STEPS_TO_WIN;    // marker range: -5 ... +5
+    // Grade 8-ish addition/subtraction range:
+    // tweak these if you want easier/harder.
+    const RANGE_MIN = -50;
+    const RANGE_MAX = 200;
+
+    // ===== State =====
+    let turn = "RED";  // "RED" or "BLUE"
+    let pos = 0;       // rope position: -5 (RED wins) ... +5 (BLUE wins)
+    let locked = false; // prevents double submit in same turn
+    let redQuestion = null;
+    let blueQuestion = null;
+    let gameOver = false;
+
+    // ===== Elements =====
+    const redQEl = document.getElementById("redQ");
+    const blueQEl = document.getElementById("blueQ");
+    const redAnsEl = document.getElementById("redAns");
+    const blueAnsEl = document.getElementById("blueAns");
+    const redStepsEl = document.getElementById("redSteps");
+    const blueStepsEl = document.getElementById("blueSteps");
+    const posTextEl = document.getElementById("posText");
+
+    const markerEl = document.getElementById("marker");
+    const ticksEl = document.getElementById("ticks");
+
+    const turnPillEl = document.getElementById("turnPill");
+    const turnTextEl = document.getElementById("turnText");
+    const turnDotEl = document.getElementById("turnDot");
+
+    const mainMsgEl = document.getElementById("mainMsg");
+    const subMsgEl = document.getElementById("subMsg");
+    const btnNext = document.getElementById("btnNext");
+
+    const btnNew = document.getElementById("btnNew");
+    const btnHelp = document.getElementById("btnHelp");
+    const helpPanel = document.getElementById("helpPanel");
+    const btnCloseHelp = document.getElementById("btnCloseHelp");
+
+    const redSubmit = document.getElementById("redSubmit");
+    const blueSubmit = document.getElementById("blueSubmit");
+
+    // ===== Helpers =====
+    function randInt(min, max){
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Create an addition/subtraction question.
+    // Ensures "nice" results (integers) and keeps difficulty reasonable.
+    function makeQuestion(){
+      const op = Math.random() < 0.5 ? "+" : "-";
+
+      // Choose numbers in a way that subtraction doesn't get too wild unless range allows
+      let a = randInt(RANGE_MIN, RANGE_MAX);
+      let b = randInt(RANGE_MIN, RANGE_MAX);
+
+      // For subtraction, we can bias to keep answers within range as well
+      if (op === "-") {
+        // Make b smaller magnitude sometimes to reduce extremes
+        if (Math.random() < 0.6) b = randInt(-50, 50);
+      } else {
+        // For addition, also sometimes keep b moderate
+        if (Math.random() < 0.5) b = randInt(-50, 100);
+      }
+
+      const text = `${a} ${op} ${b}`;
+      const ans = op === "+" ? a + b : a - b;
+
+      return { text, ans };
+    }
+
+    function updateTicks(){
+      ticksEl.innerHTML = "";
+      const count = (MAX_ABS_POS * 2) + 1; // 11 for -5..+5
+      for(let i=0;i<count;i++){
+        const t = document.createElement("div");
+        t.className = "tick";
+        ticksEl.appendChild(t);
+      }
+    }
+
+    function updateMarker(){
+      // Map pos [-5..+5] to percentage across rope [10%..90%]
+      const leftMin = 10;
+      const leftMax = 90;
+      const t = (pos + MAX_ABS_POS) / (2 * MAX_ABS_POS); // 0..1
+      const leftPct = leftMin + t * (leftMax - leftMin);
+      markerEl.style.left = leftPct + "%";
+
+      posTextEl.textContent = pos;
+      redStepsEl.textContent = Math.max(0, -pos);
+      blueStepsEl.textContent = Math.max(0, pos);
+    }
+
+    function setTurn(newTurn){
+      turn = newTurn;
+      locked = false;
+
+      if(turn === "RED"){
+        turnPillEl.classList.remove("blue");
+        turnPillEl.classList.add("red");
+        turnDotEl.classList.remove("blue");
+        turnDotEl.classList.add("red");
+        turnTextEl.textContent = "RED's turn";
+        redAnsEl.disabled = false;
+        blueAnsEl.disabled = true;
+        redSubmit.disabled = false;
+        blueSubmit.disabled = true;
+        redAnsEl.focus();
+      }else{
+        turnPillEl.classList.remove("red");
+        turnPillEl.classList.add("blue");
+        turnDotEl.classList.remove("red");
+        turnDotEl.classList.add("blue");
+        turnTextEl.textContent = "BLUE's turn";
+        redAnsEl.disabled = true;
+        blueAnsEl.disabled = false;
+        redSubmit.disabled = true;
+        blueSubmit.disabled = false;
+        blueAnsEl.focus();
+      }
+
+      mainMsgEl.textContent = "Solve your question to pull the rope!";
+      mainMsgEl.classList.remove("winner","warn");
+      subMsgEl.textContent = "Correct = pull 1 step • Wrong = no pull";
+      btnNext.textContent = "Next Question";
+    }
+
+    function newQuestions(){
+      redQuestion = makeQuestion();
+      blueQuestion = makeQuestion();
+      redQEl.textContent = redQuestion.text;
+      blueQEl.textContent = blueQuestion.text;
+      redAnsEl.value = "";
+      blueAnsEl.value = "";
+    }
+
+    function checkWin(){
+      if(pos <= -STEPS_TO_WIN){
+        gameOver = true;
+        mainMsgEl.textContent = "RED WINS! 🎉";
+        mainMsgEl.classList.add("winner");
+        subMsgEl.textContent = "Click New Game to play again.";
+        lockAll();
+      } else if(pos >= STEPS_TO_WIN){
+        gameOver = true;
+        mainMsgEl.textContent = "BLUE WINS! 🎉";
+        mainMsgEl.classList.add("winner");
+        subMsgEl.textContent = "Click New Game to play again.";
+        lockAll();
+      }
+    }
+
+    function lockAll(){
+      locked = true;
+      redAnsEl.disabled = true;
+      blueAnsEl.disabled = true;
+      redSubmit.disabled = true;
+      blueSubmit.disabled = true;
+      btnNext.textContent = "Game Over";
+      btnNext.disabled = true;
+    }
+
+    function submitAnswer(team){
+      if(gameOver) return;
+      if(locked) return;
+
+      const isMyTurn = (team === turn);
+      if(!isMyTurn){
+        mainMsgEl.textContent = `It’s ${turn}'s turn.`;
+        mainMsgEl.classList.add("warn");
+        subMsgEl.textContent = "Wait for your turn 🙂";
+        return;
+      }
+
+      locked = true;
+
+      const q = team === "RED" ? redQuestion : blueQuestion;
+      const inputEl = team === "RED" ? redAnsEl : blueAnsEl;
+      const raw = inputEl.value;
+
+      if(raw === "" || raw === null){
+        mainMsgEl.textContent = "Please type an answer.";
+        mainMsgEl.classList.add("warn");
+        subMsgEl.textContent = "Then submit again.";
+        locked = false;
+        inputEl.focus();
+        return;
+      }
+
+      const userAns = Number(raw);
+      const correct = (userAns === q.ans);
+
+      if(correct){
+        if(team === "RED") pos = Math.max(-MAX_ABS_POS, pos - 1);
+        else pos = Math.min(MAX_ABS_POS, pos + 1);
+
+        updateMarker();
+        mainMsgEl.textContent = "Correct! Pull 1 step ✅";
+        mainMsgEl.classList.remove("warn");
+        subMsgEl.textContent = `${team} moved the rope.`;
+      }else{
+        mainMsgEl.textContent = `Wrong ❌ The correct answer was ${q.ans}.`;
+        mainMsgEl.classList.add("warn");
+        subMsgEl.textContent = "No pull this turn.";
+      }
+
+      checkWin();
+      if(gameOver) return;
+
+      // Switch turn after a submit
+      setTurn(team === "RED" ? "BLUE" : "RED");
+      // Refresh BOTH questions so the waiting player also gets a new one
+      newQuestions();
+    }
+
+    function nextQuestion(){
+      if(gameOver) return;
+      newQuestions();
+      mainMsgEl.textContent = "New questions ready!";
+      mainMsgEl.classList.remove("warn","winner");
+      subMsgEl.textContent = "Solve your question to pull the rope!";
+      locked = false;
+      // Keep the same turn; just refresh question set.
+      if(turn === "RED") redAnsEl.focus();
+      else blueAnsEl.focus();
+    }
+
+    function resetGame(){
+      gameOver = false;
+      pos = 0;
+      updateMarker();
+      btnNext.disabled = false;
+      btnNext.textContent = "Next Question";
+      newQuestions();
+      setTurn("RED");
+    }
+
+    // ===== Events =====
+    redSubmit.addEventListener("click", () => submitAnswer("RED"));
+    blueSubmit.addEventListener("click", () => submitAnswer("BLUE"));
+
+    redAnsEl.addEventListener("keydown", (e) => {
+      if(e.key === "Enter") submitAnswer("RED");
+    });
+    blueAnsEl.addEventListener("keydown", (e) => {
+      if(e.key === "Enter") submitAnswer("BLUE");
+    });
+
+    btnNext.addEventListener("click", nextQuestion);
+    btnNew.addEventListener("click", resetGame);
+
+    btnHelp.addEventListener("click", () => helpPanel.style.display = "block");
+    btnCloseHelp.addEventListener("click", () => helpPanel.style.display = "none");
+
+    // ===== Init =====
+    updateTicks();
+    resetGame();
+  </script>
+</body>
+</html>
